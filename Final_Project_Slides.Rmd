@@ -1,0 +1,75 @@
+---
+title: "Nile River Shiny App"
+subtitle: "Pitch Presentation"
+author: "Ben Siegelman"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Background: The River Nile
+The "Nile" dataset contains Durbin and Koopman's 2001 time series measuring the annual flow of the Nile River at Aswan Dam between the years 1871 and 1970.
+
+```{r ts, results= TRUE, fig.dim= c(5.5,2.8), fig.align='center'}
+plot(as.ts(Nile), xlab = "Year", 
+               ylab = "Annual Flow (billion cubic meters)", 
+               main = "Annual Flow of the Nile River at Aswan, 1871-1970")
+```
+
+This Shiny App allows users to more easily explore this data set by selecting periods of time within the series and examining key measures from that subset of the data.
+
+## What The App Does
+- Allows users to select start and end years for the subset period, using slider bars;
+- Displays the timeseries chart, with the selected section of the line highlighted in blue;
+- Calculates the values of the minimum, maximum, mean, and median water flow during that period, as well as the average change per year in water flow during the period;
+- Displays the results of those calculations in a table below the chart.
+
+This will help users efficiently explore the data set.
+
+## How to Use the App
+1. Choose a starting year on the first slidebar
+2. Choose an ending year on the second slidebar
+3. Look at the results! The blue section of the plot shows the years you've selected, and the table below shows calculated statistics for that time period
+
+*Note: The "ending year" slider will automatically adjust to begin with the "starting year" you've selected.
+
+***
+### <font size="4.5">If, for example, you select the interwar years (1918-1939) you'd get these results:</font>
+```{r plot, results = TRUE, fig.align='center', fig.dim=c(5.5,3)}
+## create subset of data
+filtered_nile <- window(Nile, 1918, 1939)
+
+##plot
+plot(as.ts(Nile), xlab = "Year", 
+     ylab = "Annual Flow (billion cu. meters)", 
+     main = "Annual Flow of the Nile River at Aswan, 1871-1970")
+     points(time(filtered_nile), filtered_nile, col = "blue", pch = 16)
+     lines(filtered_nile, col = "blue", lwd = 3)
+```
+
+```{r kable, warning=FALSE, message=FALSE, results=TRUE, fig.align='center', fig.dim=c(3,1.5)}
+library(knitr)
+library(kableExtra)
+library(dplyr)
+min <- min(filtered_nile)
+max <- max(filtered_nile)
+mean <- round(mean(filtered_nile),2)
+median <- median(filtered_nile)
+slope <- (filtered_nile[length(filtered_nile)]-filtered_nile[1])-
+               (1939 - 1918)
+## set up table with calculations
+flow_calc <- data.frame(`Measure` = c(
+                         "Minimum Flow During Selected Period",
+                         "Maximum Flow During Selected Period",
+                         "Average Flow During Selected Period", 
+                         "Median Flow During Selected Period", 
+                         "Average Annual Change in Flow During Selected Period"),
+          `Value (billion cubic meters)` = c(min, max, mean, median, slope))
+     colnames(flow_calc) <- c("Measure","Value (billion cubic meters)")
+
+kable(flow_calc) %>%
+     kable_styling(position="center", font_size=10)
+```
